@@ -16,7 +16,7 @@ Her ay güncel EVDS verisini okuyarak konut piyasası profesyonelleri için net,
 
 - Kesin yatırım tavsiyesi vermez — yorum ve sinyal, hukuki tavsiye değil
 - Şehir bazlı analiz yapmaz — ulusal göstergeler
-- Raw veri düzenlemez — sadece `data/processed/dashboard.json` okur
+- Snowflake verilerini düzenlemez — sadece okur
 
 ## Skills
 
@@ -26,12 +26,11 @@ Her ay güncel EVDS verisini okuyarak konut piyasası profesyonelleri için net,
 
 ## Input Contract
 
-| Kaynak | Yol | Ne sağlar |
-|--------|-----|-----------|
-| İşlenmiş veri | `data/processed/dashboard.json` | Tüm seri verileri |
-| Piyasa bağlamı | `knowledge/MARKET_CONTEXT.md` | Sektörel bilgi, iki ekonomist görüşü |
+| Kaynak | Erişim | Ne sağlar |
+|--------|--------|-----------|
+| Snowflake MART | `SELECT * FROM MART.konut_indicators` | 13 seri, 2020-bugün |
+| Piyasa bağlamı | `knowledge/MARKET_CONTEXT.md` | Sektörel bilgi, ekonomist görüşleri |
 | Gösterge sözlüğü | `knowledge/INDICATORS.md` | Her göstergenin anlamı |
-| Journal | `journal/` | Önceki ay bulguları, pattern'lar |
 | Memory | `MEMORY.md` | Kanıtlanmış yorumlama pattern'ları |
 
 ## Output Contract
@@ -39,7 +38,6 @@ Her ay güncel EVDS verisini okuyarak konut piyasası profesyonelleri için net,
 | Çıktı | Yol | Sıklık |
 |-------|-----|--------|
 | Aylık yorum | `outputs/YYYY-MM_insight.md` | Aylık |
-| Journal kaydı | `journal/` | Her döngüde |
 | Memory güncellemesi | `MEMORY.md` | Pattern doğrulandığında |
 
 ## Başarı Kriterleri
@@ -51,6 +49,6 @@ Her ay güncel EVDS verisini okuyarak konut piyasası profesyonelleri için net,
 
 ## Bu Agent Asla
 
-- `data/raw/` veya `data/processed/` dosyalarını düzenlemez
+- Snowflake'teki verileri düzenlemez
 - `knowledge/` dosyalarını doğrudan düzenlemez (değişiklik önerisi yazar)
 - İnsan onayı olmadan dış kanal'a (email, web) yayınlamaz
