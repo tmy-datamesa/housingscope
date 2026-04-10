@@ -11,7 +11,7 @@ Aylık EVDS verisinden konut profesyonelleri için net, veri destekli yorum üre
 
 ## Girdiler
 
-- `data/processed/dashboard.json` — tüm seriler
+- Snowflake `MART.konut_indicators` — 13 seri, (month, series_key, value) formatı
 - `knowledge/MARKET_CONTEXT.md` — piyasa bağlamı
 - `knowledge/INDICATORS.md` — gösterge anlamları
 - `MEMORY.md` — önceki kanıtlanmış pattern'lar
@@ -19,15 +19,33 @@ Aylık EVDS verisinden konut profesyonelleri için net, veri destekli yorum üre
 ## Süreç
 
 ### Adım 1: Sayıları Oku
-Her seri için son iki ayı karşılaştır:
-- KFE: ay/ay değişim (%), yıl/yıl değişim (%)
-- TÜFE: son değer, ay/ay değişim
+
+Son iki ayı karşılaştır (her seri için):
+
+**Fiyat grubu:**
+- kfe: ay/ay değişim (%), yıl/yıl değişim (%)
+- kfe_yeni vs kfe_ikinciel: fark var mı? (yeni > eski = arz baskısı)
+
+**Enflasyon bağlamı:**
+- tufe: son değer, ay/ay değişim
 - KFE – TÜFE farkı: pozitif mi (reel artış) negatif mi (reel düşüş)?
-- Konut faizi: değişim yönü
-- USD/TRY: değişim yönü
-- İnşaat maliyeti: değişim yönü
+- insaat_maliyet (ÜFE): KFE ile karşılaştır (maliyet > fiyat = arz sıkışması)
+
+**Erişilebilirlik:**
+- konut_faiz: değişim yönü (kredi maliyeti)
+- mevduat_faiz: konut faizine yakın mı? (park etmek mi almak mı?)
+- usd_try: dolar bazında konut değeri nereye gidiyor?
+
+**Piyasa aktivitesi:**
+- konut_satis_toplam: hacim artıyor mu azalıyor mu?
+- konut_satis_ipotekli / konut_satis_toplam: ipotekli oran (faize duyarlılık proxy)
+- konut_satis_ilkel vs konut_satis_ikinciel: piyasa sağlığı
+
+**Getiri karşılaştırması:**
+- altin: aynı dönemde altın ne yaptı? (konut rakibi)
 
 ### Adım 2: Sinyal Üret
+
 Her gösterge için yön belirle: ↑ ↓ →
 
 Sinyal matrisi:
@@ -37,6 +55,8 @@ Sinyal matrisi:
 | KFE < TÜFE (reel düşüş) | Bekle | Fırsat penceresi kapanıyor | Dikkatli |
 | Faiz düşüyor | Kredi avantajı artıyor | Talep artacak | Uyarı: fiyat artabilir |
 | Faiz yükseliyor | Maliyetli | Talep zayıflıyor | Negatif |
+| Satış hacmi artıyor | Talep güçlü | Güçlü piyasa | Likidite var |
+| İpotekli oran düşüyor | Faiz yük ağır | Peşin talep var | Dikkatli |
 
 ### Adım 3: Yorum Yaz
 
@@ -52,12 +72,18 @@ Format (`outputs/YYYY-MM_insight.md`):
 
 | Gösterge | Değer | Ay/Ay | Yıl/Yıl | Sinyal |
 |----------|-------|-------|---------|--------|
-| KFE | ... | ...% | ...% | ↑/↓/→ |
+| KFE (Genel) | ... | ...% | ...% | ↑/↓/→ |
+| KFE (Yeni) | ... | ...% | - | ↑/↓/→ |
+| KFE (İkinci El) | ... | ...% | - | ↑/↓/→ |
 | TÜFE | ... | ...% | - | ↑/↓/→ |
 | Reel KFE (KFE-TÜFE) | ... | - | - | ↑/↓/→ |
 | Konut Faizi | ...% | ↑/↓/→ | - | - |
+| Mevduat Faizi | ...% | ↑/↓/→ | - | - |
 | USD/TRY | ... | ...% | - | ↑/↓/→ |
-| İnşaat Maliyeti | ... | ...% | - | ↑/↓/→ |
+| İnşaat Maliyeti (ÜFE) | ... | ...% | - | ↑/↓/→ |
+| Toplam Satış | ... adet | ...% | - | ↑/↓/→ |
+| İpotekli Satış Oranı | ...% | - | - | ↑/↓/→ |
+| Altın (TL/Gr) | ... | ...% | - | ↑/↓/→ |
 
 ## Alıcı / Satıcı / Yatırımcı Sinyali
 
@@ -75,6 +101,8 @@ Format (`outputs/YYYY-MM_insight.md`):
 Yayınlamadan önce kontrol et:
 - [ ] Her claim için bir sayı var mı?
 - [ ] "Reel KFE" (KFE–TÜFE) hesaplandı mı?
+- [ ] Yeni vs ikinci el fiyat farkı yorumlandı mı?
+- [ ] Satış hacmi ve ipotekli oran yorumlandı mı?
 - [ ] Her üç profil için (alıcı/satıcı/yatırımcı) net sinyal var mı?
 - [ ] Jargon yok, sayı var
 
@@ -86,4 +114,4 @@ Yayınlamadan önce kontrol et:
 
 - Sayısız "artıyor/azalıyor" ifadesi yasak — her değişim yüzde veya puan olarak verilmeli
 - "Piyasa karmaşık" gibi muğlak ifadeler yasak
-- Her yorum en fazla 400 kelime
+- Her yorum en fazla 500 kelime
