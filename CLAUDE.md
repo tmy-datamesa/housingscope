@@ -55,7 +55,19 @@ Heartbeat: Her ayın 3'ü (EVDS yayınından ~2 gün sonra).
 
 ## Kurallar
 
+### Genel (tüm projelerde geçerli)
+- Repo private. Branch: `main` (stable) + `develop` (aktif). Her zaman `develop`'ta çalış.
+- Her iş bir GitHub issue'dan başlar. Issue = to-do + karar logu.
+- Kararlar `decisions.md`'ye değil, issue yorumlarına gider.
+- SOLID prensiplerine uy. Basit, sade, pratik mimari.
+- Varsayım yapma — sor.
+
+### Bu Projeye Özel
 - `data/raw/` hiçbir zaman elle düzenlenmez
-- `knowledge/` agent tarafından düzenlenmez — değişiklik önerisi insan'a iletilir
+- `knowledge/` agent tarafından düzenlenmez — değişiklik önerisi insana iletilir
 - Her pipeline çalışmasında `data/snapshots/YYYY-MM.json` arşivi oluşturulur
 - `.env` asla commit'lenmez
+
+## Current Status
+
+2026-04-10 — Proje kuruldu. Pipeline iskelet hazır (fetch, transform, run). Insight agent dokümante edildi. Sıradaki: EVDS API key ile seri kodlarını doğrula, ilk fetch'i çalıştır.
