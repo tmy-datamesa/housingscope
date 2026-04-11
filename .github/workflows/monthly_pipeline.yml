@@ -1,0 +1,52 @@
+name: Monthly Pipeline
+
+on:
+  schedule:
+    # Her ayın 3'ü saat 06:00 UTC (EVDS yayınından ~2 gün sonra)
+    - cron: "0 6 3 * *"
+  workflow_dispatch:
+    # Manuel tetikleme (test için)
+
+jobs:
+  run-pipeline:
+    name: EVDS → Snowflake incremental update
+    runs-on: ubuntu-latest
+
+    env:
+      EVDS_API_KEY:           ${{ secrets.EVDS_API_KEY }}
+      SNOWFLAKE_ACCOUNT:      ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      SNOWFLAKE_USER:         ${{ secrets.SNOWFLAKE_USER }}
+      SNOWFLAKE_PASSWORD:     ${{ secrets.SNOWFLAKE_PASSWORD }}
+      SNOWFLAKE_WAREHOUSE:    ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+      SNOWFLAKE_DATABASE:     ${{ secrets.SNOWFLAKE_DATABASE }}
+      SNOWFLAKE_ROLE:         ${{ secrets.SNOWFLAKE_ROLE }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run incremental pipeline
+        working-directory: pipeline
+        run: python run.py --mode incremental
+
+      - name: Notify on failure
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Pipeline failure: ${new Date().toISOString().slice(0, 7)}`,
+              body: `Monthly pipeline failed on ${new Date().toISOString()}.\n\nCheck the [run log](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`,
+              labels: ["bug"]
+            });
