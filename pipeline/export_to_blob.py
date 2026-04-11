@@ -68,8 +68,7 @@ def export():
         headers={
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json",
-            "x-content-type": "application/json",
-            "x-access": "public",
+            "x-add-random-suffix": "0",
         },
     )
     with urllib.request.urlopen(req) as resp:
