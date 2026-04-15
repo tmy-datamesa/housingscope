@@ -38,6 +38,20 @@ SERIES = {
     "konut_satis_ikinciel":  ("TP.AKONUTSAT4.KTRTOPLAM", "monthly"),  # İkinci el satışlar
     "mevduat_faiz":          ("TP.TRY.MT01",           "weekly"),   # 1 Aya Kadar Vadeli TL Mevduat Faizi (%)
     "altin":                 ("TP.MK.KUL.YTL",         "monthly"),  # Külçe Altın Satış Fiyatı (TL/Gr)
+
+    # Politika faizi ve kira
+    "politika_faiz":         ("TP.BISPOLFAIZ.TUR",     "monthly"),  # TCMB 1 Haftalık Repo Faizi (Politika Faizi)
+    "kira_endeksi":          ("TP.YKKE.TR",            "monthly"),  # Yeni Kiracı Kira Endeksi
+
+    # Şehir bazlı birim fiyat (TL/m²)
+    "birimfiyat_ist":        ("TP.BIRIMFIYAT.IST",     "monthly"),  # İstanbul Konut Birim Fiyatı
+    "birimfiyat_ank":        ("TP.BIRIMFIYAT.ANK",     "monthly"),  # Ankara Konut Birim Fiyatı
+    "birimfiyat_izm":        ("TP.BIRIMFIYAT.IZM",     "monthly"),  # İzmir Konut Birim Fiyatı
+
+    # Şehir bazlı KFE endeksi
+    "kfe_istanbul":          ("TP.BK.ISTANBUL",        "monthly"),  # İstanbul Konut Fiyat Endeksi
+    "kfe_ankara":            ("TP.BK.ANKARA",          "monthly"),  # Ankara Konut Fiyat Endeksi
+    "kfe_izmir":             ("TP.BK.IZMIR",           "monthly"),  # İzmir Konut Fiyat Endeksi
 }
 
 
