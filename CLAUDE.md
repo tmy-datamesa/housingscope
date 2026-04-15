@@ -38,7 +38,7 @@ SNOWFLAKE_ROLE=ACCOUNTADMIN
 SNOWFLAKE_PASSWORD=...   # boşsa externalbrowser auth kullanılır
 ```
 
-## EVDS Seri Kodları (13 Seri)
+## EVDS Seri Kodları (20 Seri)
 
 | Key | EVDS Kodu | Frekans | Gösterge |
 |-----|-----------|---------|----------|
@@ -55,14 +55,23 @@ SNOWFLAKE_PASSWORD=...   # boşsa externalbrowser auth kullanılır
 | `konut_satis_ikinciel` | `TP.AKONUTSAT4.KTRTOPLAM` | aylık | İkinci El Satışlar |
 | `mevduat_faiz` | `TP.TRY.MT01` | haftalık→aylık | TL Mevduat Faizi 1 Ay (%) |
 | `altin` | `TP.MK.KUL.YTL` | aylık | Külçe Altın Satış Fiyatı (TL/Gr) |
+| `politika_faiz` | `TP.BISPOLFAIZ.TUR` | aylık | TCMB 1 Haftalık Repo Faizi |
+| `kira_endeksi` | `TP.YKKE.TR` | aylık | Yeni Kiracı Kira Endeksi |
+| `birimfiyat_ist` | `TP.BIRIMFIYAT.IST` | çeyreklik→aylık | İstanbul Konut Birim Fiyatı (TL/m²) |
+| `birimfiyat_ank` | `TP.BIRIMFIYAT.ANK` | çeyreklik→aylık | Ankara Konut Birim Fiyatı (TL/m²) |
+| `birimfiyat_izm` | `TP.BIRIMFIYAT.IZM` | çeyreklik→aylık | İzmir Konut Birim Fiyatı (TL/m²) |
+| `kfe_istanbul` | `TP.BK.ISTANBUL` | aylık | İstanbul Konut Fiyat Endeksi |
+| `kfe_ankara` | `TP.BK.ANKARA` | aylık | Ankara Konut Fiyat Endeksi |
+| `kfe_izmir` | `TP.BK.IZMIR` | aylık | İzmir Konut Fiyat Endeksi |
 
 ## Veri Akışı
 
 ```
-EVDS API → Snowflake RAW (13 tablo)
+EVDS API → Snowflake RAW (20 tablo)
          → SQL staging → Snowflake STAGING (normalize + agrega)
          → SQL mart    → Snowflake MART.konut_indicators
-                       → dashboard
+                       → Vercel Blob (public JSON)
+                       → dashboard (datamesa.com/housingscope)
                        → insight-agent
 ```
 
@@ -70,7 +79,7 @@ EVDS API → Snowflake RAW (13 tablo)
 
 ```
 HOUSINGSCOPE_DB
-├── RAW      — Ham EVDS verisi (13 tablo, varchar raw_date/raw_value)
+├── RAW      — Ham EVDS verisi (20 tablo, varchar raw_date/raw_value)
 ├── STAGING  — Normalize + agrega (month VARCHAR YYYY-MM, value FLOAT)
 └── MART     — konut_indicators (month, series_key, series_label, value)
 ```
@@ -97,23 +106,15 @@ Heartbeat: Her ayın 3'ü (EVDS yayınından ~2 gün sonra).
 - `.env` asla commit'lenmez
 - Snowflake Time Travel snapshot rolünü üstleniyor (data/snapshots/ artık kullanılmıyor)
 
-## Dashboard Mimarisi (Karar verildi — Issue #3)
+## Dashboard
 
-- **Stack:** FastAPI + plain HTML/CSS + Chart.js
-- **Route:** `datamesa.com/housingscope` (personal_ws ile aynı Vercel projesi)
-- **Veri:** `GET /api/housingscope/data` → Snowflake MART.konut_indicators → JSON
-- **Deploy:** Vercel Python Fluid Compute
+Dashboard bu repoda **yaşamıyor** — `tmy-datamesa/datamesa` (personal_ws) reposunda.
 
-```
-dashboard/
-├── main.py         ← FastAPI app, Snowflake bağlantısı
-├── templates/
-│   └── index.html  ← Tek sayfa, Chart.js, vanilla CSS
-└── requirements.txt (veya ana requirements.txt kullanılır)
-```
+- **Route:** `datamesa.com/housingscope`
+- **Veri akışı:** Bu repo → Vercel Blob → `GET /api/housingscope/data` → dashboard
+- `dashboard/` klasörü placeholder olarak korunuyor
 
 ## Current Status
 
-2026-04-10 — Pipeline tamamlandı (13 seri, Snowflake MART hazır). Tech stack kararı verildi.
-**PAUSED:** personal_ws yeniden inşa edilene kadar dashboard bekliyor.
-Döndüğünde: dashboard/ klasörünü FastAPI + HTML ile doldur (Issue #4).
+2026-04-15 — Pipeline 20 seriye tamamlandı (Issue #12). Dashboard `personal_ws`'de canlı.
+Aylık otomasyon: her ayın 3'ü GitHub Actions cron.

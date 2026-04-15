@@ -40,5 +40,27 @@ UNION ALL
 SELECT month, 'mevduat_faiz'         AS series_key, 'TL Mevduat Faizi -1 Ay (%)'       AS series_label, value FROM STAGING.stg_mevduat_faiz
 UNION ALL
 SELECT month, 'altin'                AS series_key, 'Külçe Altın Satış Fiyatı (TL/Gr)' AS series_label, value FROM STAGING.stg_altin
+UNION ALL
+
+-- Politika faizi ve kira
+SELECT month, 'politika_faiz'        AS series_key, 'TCMB Politika Faizi (%)'           AS series_label, value FROM STAGING.stg_politika_faiz
+UNION ALL
+SELECT month, 'kira_endeksi'         AS series_key, 'Yeni Kiracı Kira Endeksi'          AS series_label, value FROM STAGING.stg_kira_endeksi
+UNION ALL
+
+-- Şehir bazlı birim fiyat (TL/m²)
+SELECT month, 'birimfiyat_ist'       AS series_key, 'İstanbul Konut Birim Fiyatı (TL/m²)' AS series_label, value FROM STAGING.stg_birimfiyat_ist
+UNION ALL
+SELECT month, 'birimfiyat_ank'       AS series_key, 'Ankara Konut Birim Fiyatı (TL/m²)'  AS series_label, value FROM STAGING.stg_birimfiyat_ank
+UNION ALL
+SELECT month, 'birimfiyat_izm'       AS series_key, 'İzmir Konut Birim Fiyatı (TL/m²)'   AS series_label, value FROM STAGING.stg_birimfiyat_izm
+UNION ALL
+
+-- Şehir bazlı KFE endeksi
+SELECT month, 'kfe_istanbul'         AS series_key, 'İstanbul Konut Fiyat Endeksi'      AS series_label, value FROM STAGING.stg_kfe_istanbul
+UNION ALL
+SELECT month, 'kfe_ankara'           AS series_key, 'Ankara Konut Fiyat Endeksi'        AS series_label, value FROM STAGING.stg_kfe_ankara
+UNION ALL
+SELECT month, 'kfe_izmir'            AS series_key, 'İzmir Konut Fiyat Endeksi'         AS series_label, value FROM STAGING.stg_kfe_izmir
 
 ORDER BY series_key, month;
