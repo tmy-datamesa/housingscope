@@ -4,6 +4,8 @@ Monthly-updated macroeconomic dashboard for Turkey's housing market — built fo
 
 **Live:** [datamesa.dev/housingscope](https://datamesa.dev/housingscope)
 
+<img width="1117" height="962" alt="image" src="https://github.com/user-attachments/assets/b58abe24-57d5-4a2f-b4ee-cbb860d09967" />
+
 ---
 
 ## What It Does
@@ -86,3 +88,6 @@ Output: `outputs/YYYY-MM_insight.md`
 ## Portfolio Note
 
 Snowflake is used intentionally here to demonstrate ELT pipeline design — RAW/STAGING/MART separation, `MERGE`-based incremental loading, and `ensure_raw_tables()` for schema management. At this data volume (20 series, ~1,500 rows) it is deliberate over-engineering for learning and demonstration purposes.
+
+<img width="567" height="1200" alt="image" src="https://github.com/user-attachments/assets/d7ae056e-5f51-4beb-a0be-61a79f38baa4" />
+
