@@ -4,6 +4,12 @@ Konut alıcısı, satıcısı ve yatırımcısı için aylık güncellenen makro
 
 EVDS API ile 20 gösterge · Snowflake ELT · Vercel Blob · AI destekli yorum
 
+## Proje Kararı
+
+Bu repo **portföy projesi** olarak Snowflake ile kalmaya devam ediyor.
+
+Gerekçe: Snowflake bu ölçek için teknik olarak fazla mühendislik, ancak bilinçli bir karar — pipeline ve ELT mimarisini (RAW → STAGING → MART) göstermek amacıyla tutuldu. `tmy-datamesa/datamesa` (personal_ws) reposundaki yeni dashboardlar database-free pattern kullanıyor (EVDS → Python → Vercel Blob direkt).
+
 ## Kurulum
 
 ```bash
