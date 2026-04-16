@@ -1,91 +1,88 @@
 # HousingScope
 
-Konut alıcısı, satıcısı ve yatırımcısı için aylık güncellenen makroekonomik dashboard.
+Monthly-updated macroeconomic dashboard for Turkey's housing market — built for buyers, sellers, and investors.
 
-EVDS API ile 20 gösterge · Snowflake ELT · Vercel Blob · AI destekli yorum
+**Live:** [datamesa.dev/housingscope](https://datamesa.dev/housingscope)
 
-## Kurulum
+---
 
-```bash
-pip install -r requirements.txt
-cp .env.example .env
-# .env dosyasına EVDS_API_KEY ve Snowflake credentials ekle
-```
+## What It Does
 
-## Kullanım
+HousingScope tracks 20 macroeconomic indicators from Turkey's Central Bank (EVDS) and delivers a monthly-refreshed dashboard with price indices, interest rates, sales volumes, rental trends, and city-level comparisons — automatically, without manual intervention.
 
-```bash
-# İlk kurulum — 2020'den bugüne tam yükleme
-python pipeline/run.py --mode backfill
+---
 
-# Aylık güncelleme (son 2 ay, merge-based)
-python pipeline/run.py --mode incremental
-
-# MART → Vercel Blob export (pipeline sonrası otomatik çalışır)
-python pipeline/export_to_blob.py
-```
-
-GitHub Actions her ayın 3'ünde `incremental` + `export_to_blob` çalıştırır.
-
-## Göstergeler (20 Seri)
-
-| Key | EVDS Kodu | Frekans | Gösterge |
-|-----|-----------|---------|----------|
-| `kfe` | `TP.KFE.TR` | aylık | Konut Fiyat Endeksi (Genel) |
-| `kfe_yeni` | `TP.YKFE.TR` | aylık | Yeni Konutlar Fiyat Endeksi |
-| `kfe_ikinciel` | `TP.YOKFEND.TR` | aylık | İkinci El Konutlar Fiyat Endeksi |
-| `kfe_istanbul` | `TP.BK.ISTANBUL` | aylık | İstanbul Konut Fiyat Endeksi |
-| `kfe_ankara` | `TP.BK.ANKARA` | aylık | Ankara Konut Fiyat Endeksi |
-| `kfe_izmir` | `TP.BK.IZMIR` | aylık | İzmir Konut Fiyat Endeksi |
-| `tufe` | `TP.TUKFIY2025.GENEL` | aylık | TÜFE Genel |
-| `insaat_maliyet` | `TP.TUFE1YI.T1` | aylık | Yurt İçi ÜFE (inşaat maliyet proxy) |
-| `konut_faiz` | `TP.KTF12` | haftalık→aylık | Konut Kredisi Faizi |
-| `mevduat_faiz` | `TP.TRY.MT01` | haftalık→aylık | TL Mevduat Faizi 1 Ay (%) |
-| `politika_faiz` | `TP.BISPOLFAIZ.TUR` | aylık | TCMB Politika Faizi |
-| `usd_try` | `TP.DK.USD.A` | günlük→aylık | USD/TRY |
-| `altin` | `TP.MK.KUL.YTL` | aylık | Külçe Altın Satış Fiyatı (TL/Gr) |
-| `kira_endeksi` | `TP.YKKE.TR` | aylık | Yeni Kiracı Kira Endeksi |
-| `konut_satis_toplam` | `TP.AKONUTSAT1.KTRTOPLAM` | aylık | Toplam Konut Satışı (Adet) |
-| `konut_satis_ipotekli` | `TP.AKONUTSAT2.KTRTOPLAM` | aylık | İpotekli Satışlar |
-| `konut_satis_ilkel` | `TP.AKONUTSAT3.KTRTOPLAM` | aylık | İlk El Satışlar |
-| `konut_satis_ikinciel` | `TP.AKONUTSAT4.KTRTOPLAM` | aylık | İkinci El Satışlar |
-| `birimfiyat_ist` | `TP.BIRIMFIYAT.IST` | çeyreklik→aylık | İstanbul Konut Birim Fiyatı (TL/m²) |
-| `birimfiyat_ank` | `TP.BIRIMFIYAT.ANK` | çeyreklik→aylık | Ankara Konut Birim Fiyatı (TL/m²) |
-| `birimfiyat_izm` | `TP.BIRIMFIYAT.IZM` | çeyreklik→aylık | İzmir Konut Birim Fiyatı (TL/m²) |
-
-## Yapı
+## Architecture
 
 ```
-pipeline/       → EVDS → Snowflake RAW (fetch.py, run.py, export_to_blob.py)
-sql/staging/    → RAW → STAGING: 20 normalize SQL dosyası
-sql/mart/       → STAGING → MART.konut_indicators (tek birleşik tablo)
-setup/          → Snowflake ilk kurulum (tek seferlik)
-agents/         → Insight agent (aylık AI yorum, outputs/ altına yazar)
-knowledge/      → Statik piyasa bilgisi — agent okur, yazmaz
-outputs/        → Aylık insight markdown dosyaları
-data/           → Klasörler korunur; içerik Snowflake'te
+EVDS API (TCMB)
+    │
+    ▼
+Python pipeline (fetch + normalize)
+    │
+    ├── Snowflake RAW       ← raw time-series per indicator
+    ├── Snowflake STAGING   ← normalized: YYYY-MM dates, FLOAT values
+    └── Snowflake MART      ← single unified table (month, series_key, value)
+                │
+                ▼
+        Vercel Blob         ← public JSON endpoint
+                │
+                ▼
+        Dashboard           ← FastAPI + Chart.js, datamesa.dev/housingscope
 ```
 
-## Veri Akışı
+**Design decisions:**
+- **Three-layer ELT** (RAW → STAGING → MART) separates concerns: raw ingestion, normalization, and presentation are independently maintainable
+- **Snowflake Time Travel** replaces manual snapshots — historical states are queryable without extra storage
+- **Vercel Blob as public cache** decouples the pipeline from the dashboard; the site reads a static JSON endpoint, not a live database connection
+- **GitHub Actions cron** runs on the 3rd of each month — two days after EVDS publishes — making the pipeline fully automated
 
-```
-EVDS API → Snowflake RAW → STAGING → MART.konut_indicators
-                                    → Vercel Blob (public JSON)
-                                    → datamesa.com/housingscope
-                                    → insight-agent → outputs/
-```
+---
 
-## Ortam Değişkenleri
+## Data Pipeline
 
-`.env` (bkz. `.env.example`):
+**20 EVDS indicators** across five categories:
 
-```
-EVDS_API_KEY=...
-SNOWFLAKE_ACCOUNT=...
-SNOWFLAKE_USER=...
-SNOWFLAKE_PASSWORD=...   # boşsa externalbrowser auth
-SNOWFLAKE_WAREHOUSE=...
-SNOWFLAKE_DATABASE=HOUSINGSCOPE_DB
-SNOWFLAKE_ROLE=ACCOUNTADMIN
-BLOB_READ_WRITE_TOKEN=...  # export_to_blob.py için
-```
+| Category | Indicators |
+|---|---|
+| Housing prices | KFE (general, new, resale), city-level KFE (Istanbul, Ankara, Izmir) |
+| Inflation | CPI (TÜFE), construction cost (PPI proxy) |
+| Interest rates | Mortgage rate, 1-month deposit rate, TCMB policy rate |
+| Market activity | Total sales, mortgage sales, new vs. resale sales |
+| Benchmarks | USD/TRY, gold price (TRY/g), rental index, city unit prices (TRY/m²) |
+
+Frequencies handled: monthly, weekly (averaged to monthly), daily (averaged to monthly), quarterly (mapped to period end month).
+
+**SQL staging layer** normalizes each series independently — adding a new indicator means one new `.sql` file and one line in `fetch.py`.
+
+---
+
+## Insight Agent
+
+A Claude-powered agent runs after each pipeline update. It reads the MART table, computes month-over-month and year-over-year changes across all 20 indicators, and produces a structured markdown report with:
+- Real vs. nominal price spread (KFE − CPI)
+- Buyer / seller / investor signal for the month
+- Key risks and inflection points
+
+Output: `outputs/YYYY-MM_insight.md`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Data source | EVDS (TCMB Open Data API) |
+| Pipeline | Python (`requests`, `snowflake-connector`, `python-dotenv`) |
+| Storage | Snowflake (RAW / STAGING / MART schemas) |
+| Public cache | Vercel Blob |
+| Dashboard | FastAPI + Jinja2 + Chart.js (vanilla, no framework) |
+| Hosting | Vercel (Python Fluid Compute) |
+| Automation | GitHub Actions (monthly cron) |
+| Insight agent | Claude (Anthropic) |
+
+---
+
+## Portfolio Note
+
+Snowflake is used intentionally here to demonstrate ELT pipeline design — RAW/STAGING/MART separation, `MERGE`-based incremental loading, and `ensure_raw_tables()` for schema management. At this data volume (20 series, ~1,500 rows) it is deliberate over-engineering for learning and demonstration purposes.
