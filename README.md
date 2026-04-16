@@ -89,5 +89,7 @@ Output: `outputs/YYYY-MM_insight.md`
 
 Snowflake is used intentionally here to demonstrate ELT pipeline design — RAW/STAGING/MART separation, `MERGE`-based incremental loading, and `ensure_raw_tables()` for schema management. At this data volume (20 series, ~1,500 rows) it is deliberate over-engineering for learning and demonstration purposes.
 
+<img width="2550" height="1351" alt="image" src="https://github.com/user-attachments/assets/3ede4258-f1a1-4f0b-9418-d40384e2fc5b" />
+
 <img width="567" height="1200" alt="image" src="https://github.com/user-attachments/assets/d7ae056e-5f51-4beb-a0be-61a79f38baa4" />
 
